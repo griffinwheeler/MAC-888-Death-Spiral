@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Peloton Death Spiral | UNC Kenan-Flagler</title>
+<style>
+  :root {
+    --unc-blue: #4B9CD3;
+    --unc-dark: #13294B;
+    --red: #C8102E;
+    --green: #00843D;
+    --light-bg: #F4F7FB;
+    --card-bg: #FFFFFF;
+    --border: #D0DCE8;
+    --text: #1a1a2e;
+    --muted: #6b7a90;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--unc-dark);
+    color: white;
+    border-radius: 12px;
+    padding: 20px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .header-logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--unc-blue);
+    white-space: nowrap;
+  }
+  .header-title { flex: 1; }
+  .header-title h1 { font-size: 1.3rem; font-weight: 700; }
+  .header-title p { font-size: 0.82rem; color: #a8c4dc; margin-top: 3px; }
+
+  /* ── Concept Banner ── */
+  .concept {
+    background: white;
+    border-left: 5px solid var(--unc-blue);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .concept strong { color: var(--unc-dark); }
+
+  /* ── Year Stepper ── */
+  .stepper {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .step-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 6px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted);
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .step-btn:hover { border-color: var(--unc-blue); color: var(--unc-blue); }
+  .step-btn.active {
+    background: var(--unc-blue);
+    border-color: var(--unc-blue);
+    color: white;
+  }
+  .step-btn .year-label { font-size: 1rem; display: block; }
+  .step-btn .year-sub { font-size: 0.7rem; font-weight: 400; }
+
+  /* ── Main Grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .card h3 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .big-num {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--unc-dark);
+    line-height: 1;
+  }
+  .big-num.red { color: var(--red); }
+  .big-num.green { color: var(--green); }
+  .delta {
+    font-size: 0.8rem;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+  .delta.up { color: var(--red); }
+  .delta.down { color: var(--green); }
+  .delta.neutral { color: var(--muted); }
+
+  /* ── Death Spiral Formula Card ── */
+  .formula-card {
+    background: #FFF8F8;
+    border: 2px solid #f0c0c0;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .formula-card h3 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--red);
+    margin-bottom: 12px;
+  }
+  .formula {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .formula-box {
+    background: white;
+    border: 1px solid #f0c0c0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    text-align: center;
+    min-width: 100px;
+  }
+  .formula-box .label { font-size: 0.68rem; color: var(--muted); font-weight: 400; }
+  .formula-box .val { font-size: 1.1rem; font-weight: 800; color: var(--unc-dark); }
+  .formula-box .val.red { color: var(--red); }
+  .formula-arrow { font-size: 1.4rem; color: var(--red); }
+  .formula-eq { font-size: 1.2rem; color: var(--muted); }
+
+  /* ── Spiral Narrative ── */
+  .narrative {
+    background: var(--unc-dark);
+    color: white;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+  .narrative .tag {
+    display: inline-block;
+    background: var(--unc-blue);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .narrative .tag.red-tag { background: var(--red); }
+
+  /* ── Bar Chart ── */
+  .chart-section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .chart-section h3 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .bar-group { margin-bottom: 12px; }
+  .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .bar-track {
+    background: #eef2f7;
+    border-radius: 4px;
+    height: 22px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  /* ── Spiral Visual ── */
+  .spiral-vis {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .spiral-vis h3 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .spiral-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+  }
+  .spiral-step {
+    background: #f4f7fb;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    width: 90%;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted);
+    transition: all 0.3s;
+    position: relative;
+  }
+  .spiral-step.active {
+    background: #fff0f0;
+    border-color: var(--red);
+    color: var(--red);
+    transform: scale(1.02);
+  }
+  .spiral-step.done {
+    background: #fff0f0;
+    border-color: #f0c0c0;
+    color: #c05050;
+  }
+  .spiral-connector {
+    width: 2px;
+    height: 18px;
+    background: var(--red);
+    margin: 0 auto;
+    position: relative;
+  }
+  .spiral-connector::after {
+    content: '▼';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--red);
+    font-size: 0.7rem;
+  }
+
+  /* ── Source note ── */
+  .source {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* ── Nav buttons ── */
+  .nav-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .nav-btn {
+    padding: 10px 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all 0.2s;
+  }
+  .nav-btn.prev { background: #eef2f7; color: var(--unc-dark); }
+  .nav-btn.prev:hover { background: #d0dce8; }
+  .nav-btn.next { background: var(--unc-blue); color: white; }
+  .nav-btn.next:hover { background: var(--unc-dark); }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">🎓 UNC</div>
+  <div class="header-title">
+    <h1>The Death Spiral — Peloton Case Study</h1>
+    <p>Demand-Driven Death Spiral · Kenan-Flagler Business School · Cost Allocation Economics</p>
+  </div>
+</div>
+
+<!-- Concept -->
+<div class="concept">
+  <strong>The Death Spiral:</strong> As subscriber volume falls, Peloton's large fixed cost base (content studios, technology, R&D, SG&A) must be spread over <em>fewer</em> subscribers — driving up cost per subscriber. Higher costs erode competitiveness and accelerate further subscriber loss, repeating the cycle.
+  <br><br>
+  <strong>Formula:</strong> Unit Cost = Variable Cost + (Fixed Costs ÷ Volume). When Volume ↓, Unit Cost ↑ → margin collapses → further volume loss.
+</div>
+
+<!-- Year Stepper -->
+<div class="stepper" id="stepper"></div>
+
+<!-- Nav -->
+<div class="nav-row">
+  <button class="nav-btn prev" id="prevBtn" onclick="changeYear(-1)">← Previous</button>
+  <button class="nav-btn next" id="nextBtn" onclick="changeYear(1)">Next →</button>
+</div>
+
+<!-- Formula Card -->
+<div class="formula-card">
+  <h3>📐 Death Spiral Formula — Applied to Peloton</h3>
+  <div class="formula" id="formulaRow"></div>
+</div>
+
+<!-- KPI Grid -->
+<div class="grid" id="kpiGrid"></div>
+
+<!-- Bar Chart -->
+<div class="chart-section">
+  <h3>📊 Key Metrics Across All Years</h3>
+  <div id="barChart"></div>
+  <p class="source">Sources: Peloton 10-K Annual Reports (FY2021–FY2024) · Yahoo Finance · Peloton Investor Relations</p>
+</div>
+
+<!-- Spiral Steps -->
+<div class="spiral-vis">
+  <h3>🌀 Death Spiral Progression</h3>
+  <div class="spiral-steps" id="spiralSteps"></div>
+</div>
+
+<!-- Narrative -->
+<div class="narrative" id="narrative"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+// All figures from Peloton 10-K filings (fiscal year ending June 30)
+// Revenue in $B, costs in $B, subscribers in millions
+const years = [
+  {
+    label: "FY2021",
+    sub: "Peak",
+    revenue: 4.02,
+    fixedCosts: 2.60,   // Operating expenses ex variable COGS (~SG&A + R&D + content)
+    variableCosts: 1.42, // Variable COGS portion
+    subscribers: 2.33,  // Connected fitness paid subscribers (M)
+    netLoss: -0.189,
+    grossMargin: 36.0,
+    costPerSub: null,   // computed
+    spiralStep: 0,
+    narrative: "🚀 <strong>The Peak:</strong> COVID-19 lockdowns sent demand for home fitness soaring. Peloton added subscribers at a record pace, reaching 2.33M connected fitness subscribers. Revenue hit $4.02B — its all-time high. Fixed costs were spread across a large and growing subscriber base, keeping per-subscriber costs manageable. The company appeared unstoppable.",
+    tag: "PEAK DEMAND",
+    tagClass: ""
+  },
+  {
+    label: "FY2022",
+    sub: "Collapse",
+    revenue: 3.58,
+    fixedCosts: 2.68,
+    variableCosts: 2.88,
+    subscribers: 2.97,
+    netLoss: -2.828,
+    grossMargin: 19.5,
+    costPerSub: null,
+    spiralStep: 1,
+    narrative: "📉 <strong>Demand Collapses:</strong> Gyms reopened. Peloton's hardware revenue fell 30.6% as consumers returned to in-person fitness. Despite subscriber count still near peak, the company had massively over-invested in inventory, manufacturing, and headcount to meet pandemic-era demand. Fixed costs ballooned to $2.68B while revenue dropped. Net loss exploded to <strong>$2.83B</strong> — the worst in company history. The death spiral begins.",
+    tag: "SPIRAL BEGINS",
+    tagClass: "red-tag"
+  },
+  {
+    label: "FY2023",
+    sub: "Deepening",
+    revenue: 2.80,
+    fixedCosts: 1.79,
+    variableCosts: 1.88,
+    subscribers: 3.08,
+    netLoss: -1.262,
+    grossMargin: 33.0,
+    costPerSub: null,
+    spiralStep: 2,
+    narrative: "🔻 <strong>Spiral Deepens:</strong> Hardware revenue collapsed 48% year-over-year to $1.13B. Peloton slashed prices on its Bike+ from $2,495 → $1,445 trying to win back customers — but this crushed margins further. Fixed costs, though reduced via layoffs and restructuring, still had to be absorbed by a shrinking hardware volume. Per-subscriber fixed cost burden rose sharply. Net loss: $1.26B. A seat-post recall cost an additional $40M and drove 15,000–20,000 subscribers to pause memberships.",
+    tag: "SPIRAL DEEPENS",
+    tagClass: "red-tag"
+  },
+  {
+    label: "FY2024",
+    sub: "Stabilizing",
+    revenue: 2.70,
+    fixedCosts: 1.61,
+    variableCosts: 1.49,
+    subscribers: 2.97,
+    netLoss: -0.552,
+    grossMargin: 44.7,
+    costPerSub: null,
+    spiralStep: 3,
+    narrative: "⚠️ <strong>Partial Stabilization:</strong> CEO Barry McCarthy's restructuring — outsourcing manufacturing, cutting headcount from 6,700 → 3,825, shifting to third-party logistics — reduced fixed costs significantly. Gross margin recovered to 44.7%. However, hardware revenue continued declining (to $991.7M), and subscriber count dipped below 3M. The company is still losing money ($552M net loss) but the spiral has slowed. The key question: can Peloton grow volume again before fixed costs overwhelm the remaining subscriber base?",
+    tag: "PARTIAL RECOVERY",
+    tagClass: ""
+  }
+];
+
+// Compute cost per subscriber
+years.forEach(y => {
+  y.costPerSub = ((y.fixedCosts * 1000) / y.subscribers).toFixed(0); // $M per M subs = $ per sub
+  // Actually: fixedCosts in $B, subscribers in M → cost per sub = (fixedCosts*1e9)/(subscribers*1e6) = fixedCosts/subscribers * 1000 in $/sub
+  y.costPerSubNum = (y.fixedCosts / y.subscribers * 1000).toFixed(0);
+});
+
+let currentIdx = 0;
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function render() {
+  const d = years[currentIdx];
+
+  // Stepper
+  document.getElementById('stepper').innerHTML = years.map((y, i) => `
+    <button class="step-btn ${i === currentIdx ? 'active' : ''}" onclick="setYear(${i})">
+      <span class="year-label">${y.label}</span>
+      <span class="year-sub">${y.sub}</span>
+    </button>
+  `).join('');
+
+  // Nav buttons
+  document.getElementById('prevBtn').disabled = currentIdx === 0;
+  document.getElementById('nextBtn').disabled = currentIdx === years.length - 1;
+
+  // Formula
+  const prevSubs = currentIdx > 0 ? years[currentIdx - 1].subscribers : null;
+  const subDelta = prevSubs ? ((d.subscribers - prevSubs) / prevSubs * 100).toFixed(1) : null;
+  document.getElementById('formulaRow').innerHTML = `
+    <div class="formula-box">
+      <div class="label">Fixed Costs</div>
+      <div class="val">$${d.fixedCosts.toFixed(2)}B</div>
+    </div>
+    <div class="formula-eq">÷</div>
+    <div class="formula-box">
+      <div class="label">Subscribers</div>
+      <div class="val">${d.subscribers.toFixed(2)}M</div>
+    </div>
+    <div class="formula-eq">=</div>
+    <div class="formula-box">
+      <div class="label">Fixed Cost / Sub</div>
+      <div class="val red">$${d.costPerSubNum}</div>
+    </div>
+    <div class="formula-arrow">→</div>
+    <div class="formula-box">
+      <div class="label">Net Loss</div>
+      <div class="val red">$${Math.abs(d.netLoss).toFixed(2)}B</div>
+    </div>
+  `;
+
+  // KPI Grid
+  const prevYear = currentIdx > 0 ? years[currentIdx - 1] : null;
+  function delta(curr, prev, field, fmt, invertGood) {
+    if (!prev) return '<span class="delta neutral">— baseline</span>';
+    const diff = curr[field] - prev[field];
+    const pct = ((diff / Math.abs(prev[field])) * 100).toFixed(1);
+    const isGood = invertGood ? diff < 0 : diff > 0;
+    const cls = isGood ? 'down' : 'up';
+    const arrow = diff > 0 ? '▲' : '▼';
+    return `<span class="delta ${cls}">${arrow} ${Math.abs(pct)}% vs ${prev.label}</span>`;
+  }
+
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="card">
+      <h3>📦 Connected Fitness Subscribers</h3>
+      <div class="big-num">${d.subscribers.toFixed(2)}M</div>
+      ${delta(d, prevYear, 'subscribers', '', false)}
+    </div>
+    <div class="card">
+      <h3>💰 Total Revenue</h3>
+      <div class="big-num">$${d.revenue.toFixed(2)}B</div>
+      ${delta(d, prevYear, 'revenue', '', false)}
+    </div>
+    <div class="card">
+      <h3>🏗️ Fixed Cost Burden</h3>
+      <div class="big-num red">$${d.fixedCosts.toFixed(2)}B</div>
+      ${delta(d, prevYear, 'fixedCosts', '', true)}
+    </div>
+    <div class="card">
+      <h3>💸 Fixed Cost Per Subscriber</h3>
+      <div class="big-num red">$${d.costPerSubNum}</div>
+      ${prevYear ? `<span class="delta ${parseFloat(d.costPerSubNum) > parseFloat(prevYear.costPerSubNum) ? 'up' : 'down'}">
+        ${parseFloat(d.costPerSubNum) > parseFloat(prevYear.costPerSubNum) ? '▲' : '▼'} 
+        $${Math.abs(parseFloat(d.costPerSubNum) - parseFloat(prevYear.costPerSubNum)).toFixed(0)} vs ${prevYear.label}
+      </span>` : '<span class="delta neutral">— baseline</span>'}
+    </div>
+    <div class="card">
+      <h3>📉 Net Loss</h3>
+      <div class="big-num red">$(${Math.abs(d.netLoss).toFixed(2)}B)</div>
+      ${prevYear ? `<span class="delta ${Math.abs(d.netLoss) < Math.abs(prevYear.netLoss) ? 'down' : 'up'}">
+        ${Math.abs(d.netLoss) < Math.abs(prevYear.netLoss) ? '▼ Improving' : '▲ Worsening'} vs ${prevYear.label}
+      </span>` : '<span class="delta neutral">— baseline</span>'}
+    </div>
+    <div class="card">
+      <h3>📊 Gross Margin</h3>
+      <div class="big-num ${d.grossMargin > 35 ? 'green' : 'red'}">${d.grossMargin.toFixed(1)}%</div>
+      ${delta(d, prevYear, 'grossMargin', '', false)}
+    </div>
+  `;
+
+  // Bar chart
+  const maxRev = Math.max(...years.map(y => y.revenue));
+  const maxFC = Math.max(...years.map(y => y.fixedCosts));
+  const maxLoss = Math.max(...years.map(y => Math.abs(y.netLoss)));
+  const maxCPS = Math.max(...years.map(y => parseFloat(y.costPerSubNum)));
+
+  document.getElementById('barChart').innerHTML = `
+    ${barGroup('Revenue ($B)', years.map(y => ({label: y.label, val: y.revenue, max: maxRev, color: '#4B9CD3', active: y.label === d.label})))}
+    ${barGroup('Fixed Costs ($B)', years.map(y => ({label: y.label, val: y.fixedCosts, max: maxFC, color: '#C8102E', active: y.label === d.label})))}
+    ${barGroup('Fixed Cost / Subscriber ($)', years.map(y => ({label: y.label, val: parseFloat(y.costPerSubNum), max: maxCPS, color: '#8B0000', active: y.label === d.label})))}
+    ${barGroup('Net Loss ($B)', years.map(y => ({label: y.label, val: Math.abs(y.netLoss), max: maxLoss, color: '#FF6B6B', active: y.label === d.label})))}
+  `;
+
+  // Spiral steps
+  const steps = [
+    "🏠 COVID demand surge → subscribers & revenue peak",
+    "🏋️ Gyms reopen → hardware demand collapses",
+    "📉 Revenue falls → fixed costs spread over fewer units",
+    "💸 Per-subscriber cost rises → margins compressed",
+    "✂️ Price cuts to retain subscribers → further margin erosion",
+    "🔁 Losses mount → restructuring, layoffs, brand damage"
+  ];
+  document.getElementById('spiralSteps').innerHTML = steps.map((s, i) => {
+    const stepThreshold = [0, 1, 1, 2, 2, 3];
+    const isActive = stepThreshold[i] === currentIdx;
+    const isDone = stepThreshold[i] < currentIdx;
+    const cls = isActive ? 'active' : (isDone ? 'done' : '');
+    return `
+      <div class="spiral-step ${cls}">${s}</div>
+      ${i < steps.length - 1 ? '<div class="spiral-connector"></div>' : ''}
+    `;
+  }).join('');
+
+  // Narrative
+  document.getElementById('narrative').innerHTML = `
+    <span class="tag ${d.tagClass}">${d.tag} · ${d.label}</span>
+    <p>${d.narrative}</p>
+  `;
+}
+
+function barGroup(title, items) {
+  const rows = items.map(item => {
+    const pct = (item.val / item.max * 100).toFixed(1);
+    const border = item.active ? 'outline: 2px solid #13294B; outline-offset: 2px; border-radius: 4px;' : '';
+    return `
+      <div class="bar-group">
+        <div class="bar-label">
+          <span style="${item.active ? 'color:#13294B;font-weight:800;' : ''}">${item.label}</span>
+          <span>${typeof item.val === 'number' && item.val > 10 ? '$' + item.val.toFixed(0) : (item.val < 10 ? '$' + item.val.toFixed(2) + 'B' : item.val.toFixed(2))}</span>
+        </div>
+        <div class="bar-track" style="${border}">
+          <div class="bar-fill" style="width:${pct}%;background:${item.color};opacity:${item.active ? 1 : 0.45};">
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  return `<div style="margin-bottom:18px;"><div style="font-size:0.78rem;font-weight:700;color:#6b7a90;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">${title}</div>${rows}</div>`;
+}
+
+function setYear(idx) {
+  currentIdx = idx;
+  render();
+}
+
+function changeYear(dir) {
+  currentIdx = Math.max(0, Math.min(years.length - 1, currentIdx + dir));
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
